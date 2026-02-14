@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Афиша — Москва</title>
+    <meta name="description" content="Афиша Москвы - фильмы, спектакли, концерты, выставки и другие развлечения">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="header-left">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                            <rect width="32" height="32" rx="8" fill="#FF4C4C" />
+                            <path d="M12 10H20V14H12V10Z M10 16H22V20H10V16Z M14 22H18V26H14V22Z" fill="white" />
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <div class="logo-brand">афиша</div>
+                        <div class="logo-city">МОСКВА</div>
+                    </div>
+                </div>
+
+                <nav class="nav">
+                    <a href="#" class="nav-link">КИНО</a>
+                    <a href="#" class="nav-link">ТЕАТР</a>
+                    <a href="#" class="nav-link">ЕЛКИ</a>
+                    <a href="#" class="nav-link nav-link-special">
+                        <span class="nav-icon">📍</span>
+                        ГИД
+                    </a>
+                    <a href="#" class="nav-link">РЕСТОРАНЫ</a>
+                </nav>
+            </div>
+
+            <div class="header-right">
+                <div class="partners">
+                    <div class="partner-logo">ökko</div>
+                    <div class="partner-separator">⋮</div>
+                    <div class="partner-logo partner-logo-script">Daily</div>
+                    <div class="partner-more">⋯</div>
+                </div>
+
+                <button class="search-btn" aria-label="Поиск">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="2" />
+                        <path d="M13 13L17 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
+
+                <button class="login-btn">ВОЙТИ</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <section class="hero">
+            <div class="hero-grid">
+                <!-- Карточка 1: Фильм Волчок -->
+                <article class="event-card event-card-large">
+                    <a href="volchok.html" style="text-decoration: none; color: inherit; display: block;">
+                        <div class="event-image"
+                            style="background: linear-gradient(135deg, #8B7355 0%, #D4A574 50%, #87CEEB 100%);">
+                            <div class="event-rating">7.1</div>
+                        </div>
+                    </a>
+                    <div class="event-content">
+                        <div class="event-category">ФИЛЬМ</div>
+                        <h2 class="event-title">Волчок</h2>
+                        <p class="event-description">Culachный боец Волчок помогает аристократу Ване спастись от убийц,
+                            подосланных дядей, решившим завладеть наследством мальчика</p>
+                        <div class="event-actions">
+                            <a href="volchok.html" class="btn-primary"
+                                style="text-decoration: none; display: block; text-align: center;">Купить билет</a>
+                            <button class="btn-favorite" aria-label="Добавить в избранное">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path
+                                        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                                        fill="currentColor" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Карточка 2: Спектакль Дядя Стёпа -->
+                <article class="event-card event-card-large">
+                    <a href="uncle-stepa.html" style="text-decoration: none; color: inherit; display: block;">
+                        <div class="event-image"
+                            style="background: linear-gradient(135deg, #2E5CB8 0%, #4A90E2 50%, #87CEEB 100%);">
+                            <div class="event-rating">9.9</div>
+                        </div>
+                    </a>
+                    <div class="event-content">
+                        <div class="event-category">СПЕКТАКЛЬ</div>
+                        <h2 class="event-title">Дядя Стёпа. Говорят: под Новый год...</h2>
+                        <p class="event-description">Декабрь 2025, Январь — 26, Академия спорта имени Ярыгина</p>
+                        <div class="event-actions">
+                            <a href="uncle-stepa.html" class="btn-secondary"
+                                style="text-decoration: none; display: block; text-align: center;">От 2000 ₽</a>
+                            <button class="btn-favorite" aria-label="Добавить в избранное">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <path
+                                        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                                        fill="currentColor" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Карточка 3: Выставка Рождественская ярмарка -->
+                <article class="event-card event-card-large">
+                    <a href="christmas-market.html" style="text-decoration: none; color: inherit; display: block;">
+                        <div class="event-image"
+                            style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);">
+                        </div>
+                    </a>
+                    <div class="event-content">
+                        <div class="event-category">ВЫСТАВКА</div>
+                        <h2 class="event-title">Рождественская ярмарка</h2>
+                        <div class="event-actions">
+                            <button class="btn-favorite btn-favorite-large" aria-label="Добавить в избранное">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                                    <path
+                                        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                                        fill="currentColor" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="categories">
+            <div class="categories-scroll">
+                <button class="category-btn category-btn-active">Фильмы, изменившие мир</button>
+                <button class="category-btn">Подборки</button>
+                <button class="category-btn">Каталог фильмов</button>
+                <button class="category-btn">Ожидаемые премьеры</button>
+                <button class="category-btn">Расписание фильмов</button>
+                <button class="category-btn">Ёлки</button>
+            </div>
+        </section>
+
+        <section class="bottom-section">
+            <div class="bottom-content">
+                <div class="promo-card">
+                    <div class="promo-icon">💬</div>
+                    <div class="promo-text">Спросить ассистента...</div>
+                </div>
+
+                <div class="bottom-banner" style="background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);">
+                    <div class="banner-logo">СберСпасибо</div>
+                    <div class="banner-badge">
+                        <div class="badge-icon">C</div>
+                    </div>
+                </div>
+
+                <div class="collection-card">
+                    <h3 class="collection-title">Изумрудная коллекция только в СберСпасибо</h3>
+                    <button class="collection-btn">→</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оплата заказа — Афиша Москва</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="booking.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .payment-container {
+            max-width: 800px;
+            margin: 80px auto;
+            padding: 40px;
+        }
+
+        .payment-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .payment-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin-bottom: 16px;
+        }
+
+        .payment-subtitle {
+            font-size: 16px;
+            color: var(--color-text-secondary);
+        }
+
+        .order-info-card {
+            background: var(--color-bg-light);
+            padding: 32px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 40px;
+        }
+
+        .order-info-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-light);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .order-info-event {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 16px;
+        }
+
+        .order-info-details {
+            font-size: 15px;
+            color: var(--color-text-secondary);
+            line-height: 1.8;
+            margin-bottom: 24px;
+        }
+
+        .order-info-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 24px;
+            border-top: 2px solid var(--color-border);
+        }
+
+        .total-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+        }
+
+        .total-amount {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--color-text-primary);
+        }
+
+        .payment-methods {
+            margin-bottom: 40px;
+        }
+
+        .payment-methods-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin-bottom: 24px;
+        }
+
+        .payment-method {
+            background: white;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .payment-method:hover {
+            border-color: var(--color-text-primary);
+        }
+
+        .payment-method.selected {
+            border-color: var(--color-primary);
+            background: rgba(255, 76, 76, 0.05);
+        }
+
+        .payment-radio {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--color-border);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .payment-method.selected .payment-radio {
+            border-color: var(--color-primary);
+        }
+
+        .payment-method.selected .payment-radio::after {
+            content: '';
+            position: absolute;
+            inset: 4px;
+            background: var(--color-primary);
+            border-radius: 50%;
+        }
+
+        .payment-method-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--color-bg-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .payment-method-info {
+            flex: 1;
+        }
+
+        .payment-method-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            margin-bottom: 4px;
+        }
+
+        .payment-method-description {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .pay-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #FF4C4C 0%, #E63939 100%);
+            color: white;
+            border: none;
+            border-radius: 28px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 1px;
+            box-shadow: 0 4px 20px rgba(255, 76, 76, 0.3);
+        }
+
+        .pay-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 28px rgba(255, 76, 76, 0.4);
+        }
+
+        .pay-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .payment-method.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .payment-unavailable {
+            color: #f44336;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .agreement-section {
+            margin: 24px 0 32px;
+            padding: 20px;
+            background: var(--color-bg-light);
+            border-radius: var(--radius-md);
+        }
+
+        .agreement-checkbox {
+            display: flex;
+            align-items: flex-start;
+            cursor: pointer;
+            position: relative;
+            padding-left: 36px;
+            line-height: 1.6;
+        }
+
+        .agreement-checkbox input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .checkmark {
+            position: absolute;
+            left: 0;
+            top: 2px;
+            height: 24px;
+            width: 24px;
+            background-color: white;
+            border: 2px solid var(--color-border);
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .agreement-checkbox:hover .checkmark {
+            border-color: var(--color-primary);
+        }
+
+        .agreement-checkbox input:checked~.checkmark {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 7px;
+            top: 3px;
+            width: 6px;
+            height: 11px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .agreement-checkbox input:checked~.checkmark:after {
+            display: block;
+        }
+
+        .agreement-text {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+        }
+
+        .agreement-link {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .agreement-link:hover {
+            text-decoration: underline;
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 48px;
+            color: white;
+        }
+
+        .success-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin-bottom: 16px;
+        }
+
+        .success-text {
+            font-size: 16px;
+            color: var(--color-text-secondary);
+            margin-bottom: 32px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="header-left">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                            <rect width="32" height="32" rx="8" fill="#FF4C4C" />
+                            <path d="M12 10H20V14H12V10Z M10 16H22V20H10V16Z M14 22H18V26H14V22Z" fill="white" />
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <div class="logo-brand">афиша</div>
+                        <div class="logo-city">МОСКВА</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="payment-container" id="paymentContainer">
+        <div class="payment-header">
+            <h1 class="payment-title">Оплата заказа</h1>
+            <p class="payment-subtitle">Выберите удобный способ оплаты</p>
+        </div>
+
+        <div class="order-info-card">
+            <div class="order-info-title">Ваш заказ</div>
+            <div class="order-info-event" id="eventName">Загрузка...</div>
+            <div class="order-info-details" id="orderDetails"></div>
+            <div class="order-info-total">
+                <div class="total-label">Итого к оплате:</div>
+                <div class="total-amount" id="totalAmount">0 ₽</div>
+            </div>
+        </div>
+
+        <div class="payment-methods">
+            <h2 class="payment-methods-title">Способ оплаты</h2>
+
+            <div class="payment-method disabled" data-method="card">
+                <div class="payment-radio"></div>
+                <div class="payment-method-icon">💳</div>
+                <div class="payment-method-info">
+                    <div class="payment-method-name">Банковская карта</div>
+                    <div class="payment-method-description">Visa, MasterCard, МИР</div>
+                    <div class="payment-unavailable">⚠️ Временно недоступно</div>
+                </div>
+            </div>
+
+            <div class="payment-method" data-method="sbp">
+                <div class="payment-radio"></div>
+                <div class="payment-method-icon">📱</div>
+                <div class="payment-method-info">
+                    <div class="payment-method-name">СБП (Система быстрых платежей)</div>
+                    <div class="payment-method-description">Оплата через мобильный банк</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="agreement-section">
+            <label class="agreement-checkbox">
+                <input type="checkbox" id="agreeCheckbox">
+                <span class="checkmark"></span>
+                <span class="agreement-text">
+                    Я согласен с
+                    <a href="terms.html" target="_blank" class="agreement-link">Пользовательским соглашением</a>
+                    и даю согласие на обработку персональных данных
+                </span>
+            </label>
+        </div>
+
+        <button class="pay-btn" id="payBtn" disabled>ОПЛАТИТЬ</button>
+    </div>
+
+    <div class="payment-container success-message" id="successMessage">
+        <div class="success-icon">✓</div>
+        <h2 class="success-title">Оплата прошла успешно!</h2>
+        <p class="success-text">Билеты отправлены на вашу почту. Также вы можете найти их в личном кабинете.</p>
+        <a href="index.html" class="submit-btn" style="text-decoration: none; display: block; text-align: center;">На
+            главную</a>
+    </div>
+
+    <script>
+        // Load order data
+        const orderData = JSON.parse(localStorage.getItem('orderData') || '{}');
+
+        if (!orderData.event) {
+            window.location.href = 'index.html';
+        } else {
+            // Display order info
+            document.getElementById('eventName').textContent = `«${orderData.event.title}»`;
+            document.getElementById('orderDetails').innerHTML = `
+                ${orderData.event.address}<br>
+                12 Декабрь 17:00 - 23:00<br><br>
+                <strong>Покупатель:</strong> ${orderData.customer.name}<br>
+                <strong>Телефон:</strong> ${orderData.customer.phone}<br>
+                <strong>Email:</strong> ${orderData.customer.email}
+            `;
+            document.getElementById('totalAmount').textContent = `${orderData.total} ₽`;
+
+            // Payment method selection
+            let selectedMethod = null;
+            let isAgreed = false;
+            const payBtn = document.getElementById('payBtn');
+            const agreeCheckbox = document.getElementById('agreeCheckbox');
+
+            const updatePayButton = () => {
+                payBtn.disabled = !(selectedMethod && isAgreed);
+            };
+
+            document.querySelectorAll('.payment-method:not(.disabled)').forEach(method => {
+                method.addEventListener('click', () => {
+                    document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+                    method.classList.add('selected');
+                    selectedMethod = method.dataset.method;
+                    updatePayButton();
+                });
+            });
+
+            agreeCheckbox.addEventListener('change', (e) => {
+                isAgreed = e.target.checked;
+                updatePayButton();
+            });
+
+            // Payment button
+            payBtn.addEventListener('click', () => {
+                if (selectedMethod && isAgreed) {
+                    // Simulate payment processing
+                    payBtn.textContent = 'Обработка платежа...';
+                    payBtn.disabled = true;
+
+                    setTimeout(() => {
+                        document.getElementById('paymentContainer').style.display = 'none';
+                        document.getElementById('successMessage').style.display = 'block';
+
+                        // Clear order data
+                        localStorage.removeItem('orderData');
+                    }, 2000);
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

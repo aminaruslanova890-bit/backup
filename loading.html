@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оформление заказа — Афиша Москва</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 60px 40px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+        }
+
+        .loading-animation {
+            margin: 0 auto 40px;
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+
+        .loading-character {
+            width: 100%;
+            height: 100%;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            background: var(--color-primary);
+            border-radius: 50%;
+            animation: bounce 1.4s ease-in-out infinite;
+        }
+
+        .dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+                opacity: 0.5;
+            }
+
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .loading-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin-bottom: 16px;
+        }
+
+        .loading-subtitle {
+            font-size: 18px;
+            color: var(--color-text-secondary);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="loading-container">
+        <div class="loading-animation">
+            <svg class="loading-character" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Simplified character illustration -->
+                <circle cx="100" cy="60" r="35" fill="#FFE4C4" />
+                <rect x="75" y="95" width="50" height="80" rx="25" fill="#E8E8E8" />
+                <rect x="60" y="120" width="20" height="55" rx="10" fill="#E8E8E8" />
+                <rect x="120" y="120" width="20" height="55" rx="10" fill="#E8E8E8" />
+                <circle cx="90" cy="55" r="5" fill="#333" />
+                <circle cx="110" cy="55" r="5" fill="#333" />
+                <path d="M85 70 Q100 75 115 70" stroke="#333" stroke-width="2" fill="none" />
+                <!-- Pointing hand -->
+                <g transform="translate(40, 130) rotate(-20)">
+                    <rect x="0" y="0" width="15" height="30" rx="7" fill="#FFE4C4" />
+                    <circle cx="7.5" cy="0" r="7.5" fill="#FFE4C4" />
+                </g>
+            </svg>
+        </div>
+
+        <h1 class="loading-title">Подождите,</h1>
+        <p class="loading-subtitle">идет оформление заказа...</p>
+
+        <div class="loading-dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+
+    <script>
+        // Get order data from localStorage
+        const orderData = JSON.parse(localStorage.getItem('orderData') || '{}');
+
+        // Generate unique payment ID
+        const paymentId = 'PAY_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+        // Send notification to Telegram and redirect
+        async function processOrder() {
+            try {
+                // Send notification to backend
+                const response = await fetch('http://localhost:3002/api/payment-notification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        orderData,
+                        paymentId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Store payment ID
+                    localStorage.setItem('paymentId', paymentId);
+
+                    // Redirect to SBP payment page after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'sbp-payment.html';
+                    }, 2000);
+                } else {
+                    console.error('Failed to send notification');
+                    // Still redirect but without notification
+                    setTimeout(() => {
+                        window.location.href = 'sbp-payment.html';
+                    }, 2000);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                // Redirect anyway after error
+                setTimeout(() => {
+                    window.location.href = 'sbp-payment.html';
+                }, 2000);
+            }
+        }
+
+        // Start processing
+        if (orderData.event) {
+            processOrder();
+        } else {
+            // No order data, redirect to home
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+
+</html>
