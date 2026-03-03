@@ -528,10 +528,14 @@
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title">Сгенерированные ссылки</div>
-                        <div class="tabs" style="margin-bottom:0">
-                            <div class="tab active" onclick="filterLinks('all', this)">Все</div>
-                            <div class="tab" onclick="filterLinks('active', this)">Активные</div>
-                            <div class="tab" onclick="filterLinks('blocked', this)">Заблокированные</div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <div class="tabs" style="margin-bottom:0">
+                                <div class="tab active" onclick="filterLinks('all', this)">Все</div>
+                                <div class="tab" onclick="filterLinks('active', this)">Активные</div>
+                                <div class="tab" onclick="filterLinks('blocked', this)">Заблокированные</div>
+                            </div>
+                            <button class="btn btn-primary" onclick="deleteAllLinks()"
+                                style="background: #dc3545; padding: 6px 14px; font-size: 13px;">Удалить все</button>
                         </div>
                     </div>
                     <div id="linksTableContainer">Загрузка...</div>
@@ -679,6 +683,40 @@
             });
         }
 
+        const CITY_SLUG_MAP = {
+            'Москва': 'moscow',
+            'Санкт-Петербург': 'spb',
+            'Новосибирск': 'novosibirsk',
+            'Екатеринбург': 'ekaterinburg',
+            'Казань': 'kazan',
+            'Нижний Новгород': 'nizhniy_novgorod',
+            'Челябинск': 'chelyabinsk',
+            'Самара': 'samara',
+            'Омск': 'omsk',
+            'Ростов-на-Дону': 'rostov_on_don',
+            'Уфа': 'ufa',
+            'Красноярск': 'krasnoyarsk',
+            'Воронеж': 'voronezh',
+            'Пермь': 'perm',
+            'Волгоград': 'volgograd',
+            'Краснодар': 'krasnodar'
+        };
+
+        const CATEGORY_MAP = {
+            'Музеи': 'museum',
+            'Выставки': 'exhibition',
+            'Квесты': 'quest',
+            'Экстрим': 'extreme',
+            'Еда': 'food',
+            'Шоу': 'show',
+            'Досуг': 'leisure'
+        };
+
+        function getCitySlug(cityName) {
+            if (CITY_SLUG_MAP[cityName]) return CITY_SLUG_MAP[cityName];
+            return cityName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+        }
+
         function renderLinks(links) {
             if (!links.length) {
                 document.getElementById('linksTableContainer').innerHTML = '<p style="color:#999;padding:20px 0">Нет ссылок</p>';
@@ -686,14 +724,12 @@
             }
 
             const rows = links.map(link => {
-                const citySlug = (link.city || 'moscow').toLowerCase().replace(/\s+/g, '_');
-                const fullUrl = `http://localhost:3002/${citySlug}/event/${link.eventCategory || 'leisure'}/${link.eventId}?r=${link.workerId}`;
+                const citySlug = getCitySlug(link.city);
+                const catSlug = CATEGORY_MAP[link.category] || link.category || 'event';
+                const fullUrl = `http://localhost:3002/${citySlug}/event/${catSlug}/${link.eventId}?r=${link.workerId}&lid=${link.id}`;
                 const status = link.isActive
                     ? '<span class="badge badge-active">Активна</span>'
                     : '<span class="badge badge-blocked">Заблокирована</span>';
-                const btn = link.isActive
-                    ? `<button class="btn btn-danger" onclick="toggleLink('${link.id}', false)">Блок</button>`
-                    : `<button class="btn btn-success" onclick="toggleLink('${link.id}', true)">Актив.</button>`;
 
                 return `<tr>
                     <td>${link.id}</td>
@@ -703,7 +739,14 @@
                     <td><a class="link-url" href="${fullUrl}" target="_blank">${fullUrl}</a></td>
                     <td>${link.clicks || 0}</td>
                     <td>${status}</td>
-                    <td>${btn}</td>
+                    <td>
+                        <div style="display: flex; gap: 4px;">
+                            <button class="btn ${link.isActive ? 'btn-danger' : 'btn-success'}" onclick="toggleLink('${link.id}', ${!link.isActive})">
+                                ${link.isActive ? 'Блок' : 'Вкл'}
+                            </button>
+                            <button class="btn btn-danger" onclick="deleteLink('${link.id}')" style="background: #fff; border: 1px solid #dc3545; padding: 4px 8px;">🗑️</button>
+                        </div>
+                    </td>
                 </tr>`;
             }).join('');
 
@@ -717,8 +760,29 @@
                 </table>`;
         }
 
+        async function deleteLink(id) {
+            if (!confirm('Удалить эту ссылку?')) return;
+            try {
+                const res = await fetch(`${API}/admin/links/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast('✅ Удалено');
+                    loadLinks();
+                }
+            } catch (e) { showToast('Ошибка удаления', true); }
+        }
+
+        async function deleteAllLinks() {
+            if (!confirm('УДАЛИТЬ ВСЕ ССЫЛКИ?')) return;
+            try {
+                const res = await fetch(`${API}/admin/links`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast('✅ Все ссылки удалены');
+                    loadLinks();
+                }
+            } catch (e) { showToast('Ошибка очистки', true); }
+        }
+
         async function toggleLink(linkId, isActive) {
-            if (!confirm(`${isActive ? 'Активировать' : 'Заблокировать'} ссылку?`)) return;
             try {
                 const res = await fetch(`${API}/admin/toggle-link`, {
                     method: 'POST',

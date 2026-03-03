@@ -35,10 +35,6 @@ function initNavigation(city = 'МОСКВА', activeCategory = 'Все') {
             `).join('')}
         </nav>
         
-        <div class="afisha-actions">
-            <button class="afisha-search-btn">🔍</button>
-            <button class="afisha-login-btn">ВОЙТИ</button>
-        </div>
     `;
 
     // Insert at the beginning of body

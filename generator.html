@@ -249,7 +249,7 @@
 
                 <div class="form-group">
                     <label class="form-label">В какой категории билет</label>
-                    <select class="custom-select" id="categorySelect" onchange="filterEvents()">
+                    <select class="form-control" id="categorySelect" onchange="filterEvents()">
                         <option value="">Выберите категорию</option>
                         <option value="Музеи">Музеи и Искусство</option>
                         <option value="Выставки">Выставки</option>
@@ -276,8 +276,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Выберите дату</label>
-                    <input type="text" class="form-control" id="dateInput">
+                    <label class="form-label">Выберите дату и время</label>
+                    <input type="datetime-local" class="form-control" id="dateInput">
                 </div>
 
                 <div class="form-group">
@@ -311,12 +311,56 @@
         let allEvents = [];
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // Initialize navigation (generator page doesn't have a city context)
-            if (typeof initNavigation === 'function') {
-                initNavigation('ГЕНЕРАТОР', '');
-            }
             await Promise.all([loadCities(), loadEvents()]);
+            // Navigation will be updated after cities load via onCityChange
+            if (typeof initNavigation === 'function') {
+                initNavigation('', ''); // empty until city selected
+            }
         });
+
+        // Full transliteration map for all cities
+        const CITY_SLUG_MAP = {
+            'Москва': 'moscow',
+            'Санкт-Петербург': 'spb',
+            'Новосибирск': 'novosibirsk',
+            'Екатеринбург': 'ekaterinburg',
+            'Казань': 'kazan',
+            'Нижний Новгород': 'nizhniy_novgorod',
+            'Челябинск': 'chelyabinsk',
+            'Красноярск': 'krasnoyarsk',
+            'Уфа': 'ufa',
+            'Самара': 'samara',
+            'Ростов-на-Дону': 'rostov',
+            'Краснодар': 'krasnodar',
+            'Омск': 'omsk',
+            'Воронеж': 'voronezh',
+            'Пермь': 'perm',
+            'Волгоград': 'volgograd',
+        };
+
+        function getCitySlug(cityName) {
+            if (CITY_SLUG_MAP[cityName]) return CITY_SLUG_MAP[cityName];
+            // Generic fallback: basic transliteration
+            return cityName
+                .toLowerCase()
+                .replace(/\s+/g, '_')
+                .replace(/[а-яё]/g, c => ({
+                    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
+                    'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+                    'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+                    'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+                    'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+                }[c] || c))
+                .replace(/-/g, '_')
+                .replace(/[^a-z0-9_]/g, '');
+        }
+
+        function onCityChange() {
+            const city = document.getElementById('citySelect').value;
+            // Update city label in the navigation header
+            const label = document.getElementById('cityLabel');
+            if (label) label.textContent = city ? city.toUpperCase() : 'ГЕНЕРАТОР';
+        }
 
         async function loadCities() {
             try {
@@ -330,6 +374,8 @@
                     opt.textContent = city;
                     select.appendChild(opt);
                 });
+                // Bind change event
+                select.addEventListener('change', onCityChange);
             } catch (e) {
                 console.error('Error loading cities', e);
             }
@@ -365,64 +411,62 @@
         async function createLink() {
             const eventId = document.getElementById('eventSelect').value;
             const city = document.getElementById('citySelect').value;
-            const date = document.getElementById('dateInput').value;
+            const dateTimeStr = document.getElementById('dateInput').value;
             let workerId = document.getElementById('workerInput').value;
             const seats = document.getElementById('seatsInput').value;
 
-            // Generate random 5-9 digit number if workerId is default or empty
-            if (!workerId || workerId === 'w_001') {
-                workerId = Math.floor(10000 + Math.random() * 900000000).toString(); // Min 5 digits, max 9
-            }
-
-            if (!eventId || !city || !date) {
+            if (!eventId || !city || !dateTimeStr) {
                 alert('Пожалуйста, заполните все обязательные поля');
                 return;
             }
 
+            // Time validation (Moscow Time)
+            const selectedDate = new Date(dateTimeStr);
+            const now = new Date();
+            // Get current time in Moscow (UTC+3)
+            const moscowNow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Moscow' }));
+
+            if (selectedDate < moscowNow) {
+                alert('Нельзя выбрать прошедшее время (МСК).');
+                return;
+            }
+
+            // Generate random 5-9 digit number if workerId is default or empty
+            if (!workerId || workerId === 'w_001') {
+                workerId = Math.floor(10000 + Math.random() * 900000000).toString();
+            }
+
             try {
+                // Formatting DateTime for display/storage
+                const dateObj = new Date(dateTimeStr);
+                const formattedDate = dateObj.toLocaleString('ru-RU', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+
                 const res = await fetch(`${API_URL}/generate-link`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ eventId, city, date, workerId, seats })
+                    body: JSON.stringify({ eventId, city, date: formattedDate, workerId, seats })
                 });
 
                 const data = await res.json();
 
-                // Format: http://localhost:3002/Moscow/event/Show/dali_picasso_vr?r=w_001
-                // We use 3002 because that's where the express server is handling the wildcard route
-
-                // Transliterate city for URL (simple version)
-                const citySlug = city === 'Москва' ? 'moscow' :
-                    city === 'Санкт-Петербург' ? 'spb' :
-                        'city';
-
-                // Get category slug (we can infer it from the event or just use a generic 'event' segment, 
-                // but the user asked for /event/show/34. Let's try to match that.)
-                // We don't have the category slug easily available here without fetching the event details again 
-                // or storing it in the option. Let's assume 'event' is the category segment or use a placeholder.
-                // User example: /moscow/event/show/34
-
-                // Ideally we should get the category from the selected event.
-                // Let's grab it from the eventSelect if we saved it there, or just use 'event' as a safe fallback 
-                // if we want to be strict, but the user asked for /show/.
-                // Let's use the category select value.
+                const citySlug = getCitySlug(city);
                 const categorySelect = document.getElementById('categorySelect');
-                let categorySlug = 'event';
-                if (categorySelect.value) {
-                    // simple mapping
-                    const map = {
-                        'Музеи': 'museum',
-                        'Выставки': 'exhibition',
-                        'Квесты': 'quest',
-                        'Экстрим': 'extreme',
-                        'Еда': 'food',
-                        'Шоу': 'show',
-                        'Досуг': 'leisure'
-                    };
-                    categorySlug = map[categorySelect.value] || 'event';
-                }
 
-                const link = `http://localhost:3002/${citySlug}/event/${categorySlug}/${eventId}?r=${workerId}`;
+                const map = {
+                    'Музеи': 'museum',
+                    'Выставки': 'exhibition',
+                    'Квесты': 'quest',
+                    'Экстрим': 'extreme',
+                    'Еда': 'food',
+                    'Шоу': 'show',
+                    'Досуг': 'leisure'
+                };
+                const categorySlug = map[categorySelect.value] || 'event';
+
+                const link = `http://localhost:3002/${citySlug}/event/${categorySlug}/${eventId}?r=${workerId}&lid=${data.linkId}`;
 
                 document.getElementById('generatedLink').textContent = link;
                 document.getElementById('resultModal').classList.add('active');

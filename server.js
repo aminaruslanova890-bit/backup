@@ -24,6 +24,34 @@ app.get('/admin-pannel', (req, res) => {
 // New route for event pages with SEO-friendly URLs
 // Example: /moscow/event/show/123
 app.get('/:city/event/:category/:id', (req, res) => {
+    // Check if link is blocked if lid (linkId) is provided
+    const linkId = req.query.lid;
+    if (linkId) {
+        const link = links.get(linkId);
+        if (link && !link.isActive) {
+            return res.status(403).send(`
+                <!DOCTYPE html>
+                <html lang="ru">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Доступ ограничен</title>
+                    <style>
+                        body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8f9fa; }
+                        .error-box { text-align: center; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+                        h1 { color: #dc3545; margin-bottom: 16px; }
+                        p { color: #6c757d; font-size: 18px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="error-box">
+                        <h1>Ссылка заблокирована</h1>
+                        <p>Данная страница более недоступна. Пожалуйста, обратитесь к администратору.</p>
+                    </div>
+                </body>
+                </html>
+            `);
+        }
+    }
     res.sendFile(__dirname + '/event.html');
 });
 
@@ -553,6 +581,23 @@ app.post('/api/admin/toggle-link', (req, res) => {
 
     link.isActive = isActive;
     res.json({ success: true, link });
+});
+
+// Admin: Delete single link
+app.delete('/api/admin/links/:id', (req, res) => {
+    const { id } = req.params;
+    if (links.has(id)) {
+        links.delete(id);
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ error: 'Link not found' });
+    }
+});
+
+// Admin: Delete all links
+app.delete('/api/admin/links', (req, res) => {
+    links.clear();
+    res.json({ success: true });
 });
 
 // Admin: Update event image
