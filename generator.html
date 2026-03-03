@@ -235,6 +235,25 @@
             font-family: monospace;
             font-size: 14px;
         }
+
+        /* Improved datetime-local styling */
+        input[type="datetime-local"] {
+            cursor: pointer;
+            position: relative;
+        }
+
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            background: transparent;
+            bottom: 0;
+            color: transparent;
+            cursor: pointer;
+            height: auto;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: auto;
+        }
     </style>
 </head>
 
@@ -316,7 +335,28 @@
             if (typeof initNavigation === 'function') {
                 initNavigation('', ''); // empty until city selected
             }
+            setMinDate();
         });
+
+        function setMinDate() {
+            const dateInput = document.getElementById('dateInput');
+            if (!dateInput) return;
+            const now = new Date();
+            // Convert to Moscow Time (UTC+3) format for input min attribute
+            const moscowOffset = 3;
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const moscowTime = new Date(utc + (3600000 * moscowOffset));
+
+            const year = moscowTime.getFullYear();
+            const month = String(moscowTime.getMonth() + 1).padStart(2, '0');
+            const day = String(moscowTime.getDate()).padStart(2, '0');
+            const hours = String(moscowTime.getHours()).padStart(2, '0');
+            const minutes = String(moscowTime.getMinutes()).padStart(2, '0');
+
+            const minDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+            dateInput.min = minDateTime;
+            dateInput.value = minDateTime;
+        }
 
         // Full transliteration map for all cities
         const CITY_SLUG_MAP = {

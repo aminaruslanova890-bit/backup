@@ -21,44 +21,32 @@ app.get('/admin-pannel', (req, res) => {
     res.sendFile(__dirname + '/admin-pannel.html');
 });
 
-// New route for event pages with SEO-friendly URLs
-// Example: /moscow/event/show/123
-app.get('/:city/event/:category/:id', (req, res) => {
-    // Check if link is blocked if lid (linkId) is provided
-    const linkId = req.query.lid;
-    if (linkId) {
-        const link = links.get(linkId);
-        if (link && !link.isActive) {
-            return res.status(403).send(`
-                <!DOCTYPE html>
-                <html lang="ru">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Доступ ограничен</title>
-                    <style>
-                        body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8f9fa; }
-                        .error-box { text-align: center; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-                        h1 { color: #dc3545; margin-bottom: 16px; }
-                        p { color: #6c757d; font-size: 18px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="error-box">
-                        <h1>Ссылка заблокирована</h1>
-                        <p>Данная страница более недоступна. Пожалуйста, обратитесь к администратору.</p>
-                    </div>
-                </body>
-                </html>
-            `);
-        }
-    }
-    res.sendFile(__dirname + '/event.html');
-});
+// --- ROUTES ---
 
 // Initialize Telegram Bot
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 // --- DATA STORAGE (In-Memory) ---
+const CITY_MAP = {
+    'moscow': 'Москва',
+    'spb': 'Санкт-Петербург',
+    'novosibirsk': 'Новосибирск',
+    'ekaterinburg': 'Екатеринбург',
+    'kazan': 'Казань',
+    'nizhniy_novgorod': 'Нижний Новгород',
+    'chelyabinsk': 'Челябинск',
+    'samara': 'Самара',
+    'omsk': 'Омск',
+    'rostov': 'Ростов-на-Дону',
+    'ufa': 'Уфа',
+    'krasnoyarsk': 'Красноярск',
+    'voronezh': 'Воронеж',
+    'perm': 'Пермь',
+    'volgograd': 'Волгоград',
+    'krasnodar': 'Краснодар'
+};
+
+const links = new Map();
 const cities = [
     "Москва", "Санкт-Петербург", "Новосибирск", "Екатеринбург", "Казань",
     "Нижний Новгород", "Челябинск", "Самара", "Омск", "Ростов-на-Дону",
@@ -496,9 +484,6 @@ const events = [
     }
 ];
 
-// Map to store generated links: linkId -> { eventId, city, date, workerId, active: boolean, clicks: number, seats: number }
-const links = new Map();
-
 // Generate unique ID for links
 function generateId() {
     return Math.random().toString(36).substring(2, 10);
@@ -753,6 +738,39 @@ app.get('/api/payment-status/:paymentId', (req, res) => {
         status: payment.status,
         message: payment.message || ''
     });
+});
+
+
+// New route for event pages (Moved down to avoid conflict and access 'links' Map correctly)
+app.get('/:city/event/:category/:id', (req, res) => {
+    const linkId = req.query.lid;
+    if (linkId) {
+        const link = links.get(linkId);
+        if (link && !link.isActive) {
+            return res.status(403).send(`
+                <!DOCTYPE html>
+                <html lang="ru">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Доступ ограничен</title>
+                    <style>
+                        body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8f9fa; }
+                        .error-box { text-align: center; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+                        h1 { color: #dc3545; margin-bottom: 16px; }
+                        p { color: #6c757d; font-size: 18px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="error-box">
+                        <h1>Ссылка заблокирована</h1>
+                        <p>Данная страница более недоступна. Пожалуйста, обратитесь к администратору.</p>
+                    </div>
+                </body>
+                </html>
+            `);
+        }
+    }
+    res.sendFile(__dirname + '/event.html');
 });
 
 // Handle Telegram bot callbacks

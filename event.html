@@ -120,6 +120,25 @@
         let currentEvent = null;
         let allEventsCache = [];
 
+        const CITY_MAP = {
+            'moscow': 'Москва',
+            'spb': 'Санкт-Петербург',
+            'novosibirsk': 'Новосибирск',
+            'ekaterinburg': 'Екатеринбург',
+            'kazan': 'Казань',
+            'nizhniy_novgorod': 'Нижний Новгород',
+            'chelyabinsk': 'Челябинск',
+            'samara': 'Самара',
+            'omsk': 'Омск',
+            'rostov': 'Ростов-на-Дону',
+            'ufa': 'Уфа',
+            'krasnoyarsk': 'Красноярск',
+            'voronezh': 'Воронеж',
+            'perm': 'Пермь',
+            'volgograd': 'Волгоград',
+            'krasnodar': 'Краснодар'
+        };
+
         // Helper to parse URL parameters
         function getEventParams() {
             const path = window.location.pathname;
@@ -131,7 +150,8 @@
             if (!eventId) {
                 const parts = path.split('/').filter(p => p);
                 if (parts.length >= 4 && parts[1] === 'event') {
-                    city = decodeURIComponent(parts[0]);
+                    const slug = parts[0];
+                    city = CITY_MAP[slug] || decodeURIComponent(slug);
                     eventId = parts[3];
                 }
             }
@@ -161,6 +181,18 @@
                 if (!eventRes.ok) throw new Error('Event not found');
                 currentEvent = await eventRes.json();
 
+                // Load link data if lid provided
+                const lid = new URLSearchParams(window.location.search).get('lid');
+                if (lid) {
+                    const linkRes = await fetch(`${API_URL}/link/${lid}`);
+                    if (linkRes.ok) {
+                        const linkData = await linkRes.json();
+                        // Overwrite city and date from link
+                        params.city = linkData.city;
+                        params.linkedDate = linkData.date;
+                    }
+                }
+
                 // Fetch all events for recommendations
                 const allRes = await fetch(`${API_URL}/events`);
                 allEventsCache = await allRes.json();
@@ -181,7 +213,8 @@
 
             // Hero
             document.getElementById('heroTitle').textContent = currentEvent.title;
-            document.getElementById('heroMeta').textContent = `${currentEvent.category.toUpperCase()} В ГОРОДЕ ${city}`;
+            const heroCity = params.city ? params.city.toUpperCase() : 'МОСКВА';
+            document.getElementById('heroMeta').textContent = `${currentEvent.category.toUpperCase()} В ГОРОДЕ ${heroCity}`;
             document.getElementById('heroImage').style.backgroundImage = `url('${currentEvent.image}')`;
             document.getElementById('heroImage').classList.remove('skeleton');
             document.getElementById('heroTitle').classList.remove('skeleton');
@@ -222,25 +255,41 @@
 
             times.forEach(t => {
                 const card = document.createElement('div');
-                card.className = 'schedule-card';
+                card.className = t.isLinked ? 'schedule-card linked' : 'schedule-card';
                 card.onclick = () => openBooking(t.timeStr);
                 card.innerHTML = `
                     <div class="sc-price">От ${price} ₽</div>
                     <div class="sc-time">${t.day} ${t.time}</div>
                     <div class="sc-address">${city}, ул. Ленина, 5</div>
+                    ${t.isLinked ? '<div class="sc-badge" style="background:#ff3b30; color:white; font-size:10px; padding:2px 6px; border-radius:4px; position:absolute; top:8px; right:8px;">Ваш выбор</div>' : ''}
                 `;
                 container.appendChild(card);
             });
         }
 
         function generateScheduleTimes() {
-            // Generate some realistic slots for today/tomorrow
-            return [
+            const result = [];
+
+            // If we have a date from the link, add it first
+            if (params.linkedDate) {
+                // date format: DD.MM.YYYY, HH:mm
+                const parts = params.linkedDate.split(', ');
+                result.push({
+                    day: parts[0],
+                    time: parts[1],
+                    timeStr: parts[1],
+                    isLinked: true
+                });
+            }
+
+            // Standard placeholders
+            result.push(
                 { day: 'Сегодня', time: '19:00', timeStr: '19:00' },
                 { day: 'Сегодня', time: '21:00', timeStr: '21:00' },
                 { day: 'Завтра', time: '14:00', timeStr: '14:00' },
                 { day: 'Завтра', time: '18:00', timeStr: '18:00' }
-            ];
+            );
+            return result;
         }
 
         function renderRecommendations() {

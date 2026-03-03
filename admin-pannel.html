@@ -761,7 +761,6 @@
         }
 
         async function deleteLink(id) {
-            if (!confirm('Удалить эту ссылку?')) return;
             try {
                 const res = await fetch(`${API}/admin/links/${id}`, { method: 'DELETE' });
                 if (res.ok) {
@@ -772,7 +771,6 @@
         }
 
         async function deleteAllLinks() {
-            if (!confirm('УДАЛИТЬ ВСЕ ССЫЛКИ?')) return;
             try {
                 const res = await fetch(`${API}/admin/links`, { method: 'DELETE' });
                 if (res.ok) {
