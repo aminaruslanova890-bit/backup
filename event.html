@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Загрузка... — Афиша</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <base href="/">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navigation.css">
+    <link rel="stylesheet" href="event-page.css">
+    <link rel="stylesheet" href="booking.css">
+</head>
+
+<body>
+    <!-- Navigation will be injected by navigation.js -->
+
+    <main id="mainContent">
+        <!-- Hero Section (Dark / Split) -->
+        <section class="event-hero" id="heroSection">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <div class="hero-badge" id="heroRating">9.2</div>
+                    <div class="hero-meta" id="heroMeta">ЭКСТРИМ В ГОРОДЕ МОСКВА</div>
+                    <h1 class="hero-title skeleton" id="heroTitle">Загрузка...</h1>
+                    <button class="hero-btn" onclick="scrollToSchedule()">Расписание и карты</button>
+                </div>
+                <div class="hero-image skeleton" id="heroImage"></div>
+            </div>
+        </section>
+
+        <!-- Schedule Section -->
+        <section class="schedule-section" id="scheduleSection">
+            <div class="section-header">
+                <h2 class="section-title">Расписание сеансов</h2>
+                <button class="schedule-more-btn">Полное расписание ›</button>
+            </div>
+
+            <div class="schedule-cards" id="scheduleCards">
+                <!-- Cards injected via JS -->
+                <div class="schedule-card skeleton"></div>
+                <div class="schedule-card skeleton"></div>
+                <div class="schedule-card skeleton"></div>
+                <div class="schedule-card skeleton"></div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="about-section">
+            <div class="about-subtitle">Описание организатора</div>
+            <h2 class="section-title" id="aboutTitle">О событии</h2>
+            <div class="about-text" id="aboutText">
+                <div class="skeleton-text"></div>
+                <div class="skeleton-text"></div>
+            </div>
+            <div class="about-age">
+                <div class="age-label">Возраст</div>
+                <div class="age-value" id="aboutAge">18+</div>
+            </div>
+        </section>
+
+        <!-- Recommendations Section -->
+        <section class="recommendations-section">
+            <h2 class="section-title">Рекомендации для вас</h2>
+            <div class="recommendations-grid" id="recommendationsGrid">
+                <!-- Injected via JS -->
+                <div class="rec-card skeleton"></div>
+                <div class="rec-card skeleton"></div>
+                <div class="rec-card skeleton"></div>
+                <div class="rec-card skeleton"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer (Simulated) -->
+    <footer class="footer">
+        <div class="footer-links">
+            <div class="footer-col">
+                <a href="#">Выставки</a>
+                <a href="#">Музеи</a>
+                <a href="#">Квест комната</a>
+                <a href="#">Экстрим</a>
+                <a href="#">Daily</a>
+            </div>
+            <div class="footer-col">
+                <a href="#">Комната гнева</a>
+                <a href="#">Бильярд</a>
+                <a href="#">Боулинг</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 1999–2025 ООО «Компания Афиша». Все права защищены. Для лиц старше 18 лет. Пользовательское соглашение,
+            Политика конфиденциальности Правила возврата карт
+        </div>
+    </footer>
+
+    <!-- Chat Widget -->
+    <div class="chat-widget">
+        <div class="chat-message">
+            Здравствуйте. Чем могу помочь?
+            <input type="text" placeholder="Enter your message..." class="chat-input" disabled>
+        </div>
+        <button class="chat-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" />
+            </svg>
+            <span class="chat-notification">1</span>
+        </button>
+    </div>
+
+    <!-- Booking Modal (Hidden) -->
+    <div id="bookingModalContainer"></div>
+
+    <script src="booking.js"></script>
+    <script>
+        const API_URL = 'http://localhost:3002/api';
+        let currentEvent = null;
+        let allEventsCache = [];
+
+        // Helper to parse URL parameters
+        function getEventParams() {
+            const path = window.location.pathname;
+            const search = new URLSearchParams(window.location.search);
+
+            let eventId = search.get('id');
+            let city = search.get('city');
+
+            if (!eventId) {
+                const parts = path.split('/').filter(p => p);
+                if (parts.length >= 4 && parts[1] === 'event') {
+                    city = decodeURIComponent(parts[0]);
+                    eventId = parts[3];
+                }
+            }
+
+            if (eventId && eventId.includes('?')) {
+                eventId = eventId.split('?')[0];
+            }
+
+            return {
+                id: eventId,
+                city: city,
+                workerId: search.get('r') || search.get('ref')
+            };
+        }
+
+        const params = getEventParams();
+
+        async function initPage() {
+            if (!params.id) {
+                document.body.innerHTML = '<div style="padding:50px;text-align:center">Event ID missing</div>';
+                return;
+            }
+
+            try {
+                // Fetch current event
+                const eventRes = await fetch(`${API_URL}/events/${params.id}`);
+                if (!eventRes.ok) throw new Error('Event not found');
+                currentEvent = await eventRes.json();
+
+                // Fetch all events for recommendations
+                const allRes = await fetch(`${API_URL}/events`);
+                allEventsCache = await allRes.json();
+
+                renderPage();
+            } catch (err) {
+                console.error(err);
+                document.body.innerHTML = '<div style="padding:50px;text-align:center">Error loading event</div>';
+            }
+        }
+
+        function renderPage() {
+            document.title = `${currentEvent.title} — Афиша`;
+            const city = params.city || 'Москва';
+
+            // Initialize navigation with current city
+            initNavigation(city, currentEvent.category);
+
+            // Hero
+            document.getElementById('heroTitle').textContent = currentEvent.title;
+            document.getElementById('heroMeta').textContent = `${currentEvent.category.toUpperCase()} В ГОРОДЕ ${city}`;
+            document.getElementById('heroImage').style.backgroundImage = `url('${currentEvent.image}')`;
+            document.getElementById('heroImage').classList.remove('skeleton');
+            document.getElementById('heroTitle').classList.remove('skeleton');
+
+            // About
+            document.getElementById('aboutTitle').textContent = `О ${currentEvent.title}`;
+            document.getElementById('aboutText').textContent = currentEvent.description;
+            // Additional generated text to make it look full
+            document.getElementById('aboutText').innerHTML += `<br><br>Добро пожаловать в место, где атмосфера наполнена эмоциями, а удовлетворение от процесса — в центре внимания. Ощутите мощь и контроль, держа в руках новые впечатления. Это мероприятие предоставляет уникальную возможность испытать волнение, соблюдая все правила безопасности. Это не только развлечение, но и встреча с энергией, которую приносит каждый момент. Готовьтесь к захватывающему опыту.`;
+            document.getElementById('aboutAge').textContent = currentEvent.age || '18+';
+
+            // Schedule
+            renderSchedule(city);
+
+            // Recommendations
+            renderRecommendations();
+
+            // Init booking
+            const bookingData = {
+                title: currentEvent.title,
+                city: city,
+                address: 'Центральная Площадка',
+                basePrice: currentEvent.priceFrom || 2490
+            };
+            // Assuming booking.js is loaded
+            if (window.BookingSystem) {
+                // Initialize hidden booking system logic without UI if needed, 
+                // or just prepare it for the button click
+            }
+        }
+
+        function renderSchedule(city) {
+            const container = document.getElementById('scheduleCards');
+            container.innerHTML = '';
+
+            const times = generateScheduleTimes();
+            const price = currentEvent.priceFrom || 2490;
+
+            times.forEach(t => {
+                const card = document.createElement('div');
+                card.className = 'schedule-card';
+                card.onclick = () => openBooking(t.timeStr);
+                card.innerHTML = `
+                    <div class="sc-price">От ${price} ₽</div>
+                    <div class="sc-time">${t.day} ${t.time}</div>
+                    <div class="sc-address">${city}, ул. Ленина, 5</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function generateScheduleTimes() {
+            // Generate some realistic slots for today/tomorrow
+            return [
+                { day: 'Сегодня', time: '19:00', timeStr: '19:00' },
+                { day: 'Сегодня', time: '21:00', timeStr: '21:00' },
+                { day: 'Завтра', time: '14:00', timeStr: '14:00' },
+                { day: 'Завтра', time: '18:00', timeStr: '18:00' }
+            ];
+        }
+
+        function renderRecommendations() {
+            const container = document.getElementById('recommendationsGrid');
+            container.innerHTML = '';
+
+            // Filter out current event and pick 4 random
+            const others = allEventsCache.filter(e => e.id !== currentEvent.id);
+            const random = others.sort(() => 0.5 - Math.random()).slice(0, 4);
+
+            random.forEach(e => {
+                const card = document.createElement('div');
+                card.className = 'rec-card';
+                // Link to generate URL for this event? 
+                // Since this is a static demo, we might just reload with ?id=... or use href
+                // But better to use the new route format if possible.
+                // Reconstruct URL: /city/event/cat/id
+                const citySlug = params.city === 'Москва' ? 'moscow' : 'city';
+                const catSlug = 'event'; // simple fallback
+                const link = `/${citySlug}/event/${catSlug}/${e.id}${window.location.search}`; // keep query params like r=...
+
+                card.onclick = () => window.location.href = link;
+
+                const rating = (9 + Math.random()).toFixed(1);
+
+                card.innerHTML = `
+                    <div class="rec-image" style="background-image: url('${e.image}')">
+                        <div class="rec-badge">${rating}</div>
+                    </div>
+                    <div class="rec-title">${e.title}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function scrollToSchedule() {
+            document.getElementById('scheduleSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function openBooking(time) {
+            const price = currentEvent.priceFrom || 2490;
+            // Dispatch event for booking.js
+            const event = new CustomEvent('openBooking', { detail: { time: time, price: price } });
+            document.dispatchEvent(event);
+        }
+
+        initPage();
+    </script>
+    <script src="navigation.js"></script>
+</body>
+
+</html>

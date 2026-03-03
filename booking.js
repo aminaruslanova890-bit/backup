@@ -12,6 +12,17 @@ class BookingSystem {
 
     init() {
         this.attachScheduleEvents();
+
+        // Listen for custom event from event.html
+        document.addEventListener('openBooking', (e) => {
+            const { time, price } = e.detail;
+            const session = {
+                time: time,
+                date: '12 Декабря', // Default date for now
+                price: price
+            };
+            this.openBookingModal(session);
+        });
     }
 
     // Attach events to "Полное расписание" links

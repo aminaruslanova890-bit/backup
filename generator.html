@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Сайт</title>
+    <!-- Modern Normalize -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <!-- Google Fonts as fallback, though system fonts preferred -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="navigation.css">
+
+    <style>
+        :root {
+            --primary-blue: #007bff;
+            /* Bright blue from screenshot */
+            --primary-hover: #0069d9;
+            --bg-body: #ffffff;
+            --text-main: #212529;
+            --input-border: #ced4da;
+            --header-bg: #343a40;
+            --header-text: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--header-bg);
+            padding: 0 20px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .brand-container {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+            margin-right: 40px;
+            text-decoration: none;
+        }
+
+        .brand-title {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .brand-subtitle {
+            color: #17a2b8;
+            /* Cyan */
+            font-size: 12px;
+        }
+
+        .nav-items {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-item {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 400;
+            transition: color 0.2s;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: #fff;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 60px;
+        }
+
+        .page-header {
+            font-size: 32px;
+            font-weight: 400;
+            /* As seemingly in screenshot */
+            text-align: center;
+            margin-bottom: 30px;
+            color: #212529;
+        }
+
+        /* Card */
+        .generator-card {
+            background: #fff;
+            border-radius: 8px;
+            /* Slightly rounded */
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            border: 1px solid rgba(0, 0, 0, .125);
+            box-sizing: border-box;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            /* Bold label */
+            color: #212529;
+        }
+
+        .form-control {
+            display: block;
+            width: 100%;
+            height: 44px;
+            /* Taller inputs */
+            padding: 6px 12px;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            color: #495057;
+            background-color: #fff;
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
+        }
+
+        /* Custom Select Arrow Styling mimicking native/bootstrap */
+        select.form-control {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 8px 10px;
+        }
+
+        .btn-submit {
+            display: block;
+            width: 100%;
+            font-weight: 500;
+            color: #fff;
+            background-color: #007bff;
+            border-color: #007bff;
+            padding: 12px;
+            font-size: 18px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: color .15s ease-in-out, background-color .15s ease-in-out;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #fff;
+            padding: 24px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+            position: relative;
+            text-align: center;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            color: #000;
+        }
+
+        .link-output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            border-radius: 4px;
+            word-break: break-all;
+            margin: 15px 0;
+            color: #007bff;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation will be injected by navigation.js -->
+
+    <div class="main-content">
+        <h1 class="page-header">Генератор ссылки</h1>
+
+        <div class="generator-card">
+            <form onsubmit="event.preventDefault(); createLink();">
+
+                <div class="form-group">
+                    <label class="form-label">В какой категории билет</label>
+                    <select class="custom-select" id="categorySelect" onchange="filterEvents()">
+                        <option value="">Выберите категорию</option>
+                        <option value="Музеи">Музеи и Искусство</option>
+                        <option value="Выставки">Выставки</option>
+                        <option value="Квесты">Квесты</option>
+                        <option value="Экстрим">Экстрим</option>
+                        <option value="Еда">Еда и Напитки</option>
+                        <option value="Шоу">Шоу и Фестивали</option>
+                        <option value="Досуг">Развлечения и Досуг</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Выберите город билета</label>
+                    <select class="form-control" id="citySelect">
+                        <option value="">Выберите город</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Выберите название ивента для билета</label>
+                    <select class="form-control" id="eventSelect" disabled>
+                        <option value="">Выберите название</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Выберите дату</label>
+                    <input type="text" class="form-control" id="dateInput">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Осталось мест</label>
+                    <input type="number" class="form-control" id="seatsInput" value="1">
+                </div>
+
+                <!-- Hidden Worker ID -->
+                <input type="hidden" id="workerInput" value="w_001">
+
+                <button type="submit" class="btn-submit">Создать</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-box">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h4 style="margin-top: 0; margin-bottom: 15px; font-size: 20px;">Ссылка готова</h4>
+
+            <div class="link-output" id="generatedLink">...</div>
+
+            <button class="btn-submit" onclick="copyResult()"
+                style="font-size: 16px; padding: 10px;">Копировать</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3002/api';
+        let allEvents = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize navigation (generator page doesn't have a city context)
+            if (typeof initNavigation === 'function') {
+                initNavigation('ГЕНЕРАТОР', '');
+            }
+            await Promise.all([loadCities(), loadEvents()]);
+        });
+
+        async function loadCities() {
+            try {
+                const res = await fetch(`${API_URL}/cities`);
+                const cities = await res.json();
+                const select = document.getElementById('citySelect');
+                select.innerHTML = '<option value="">Выберите город</option>';
+                cities.forEach(city => {
+                    const opt = document.createElement('option');
+                    opt.value = city;
+                    opt.textContent = city;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error('Error loading cities', e);
+            }
+        }
+
+        async function loadEvents() {
+            try {
+                const res = await fetch(`${API_URL}/events`);
+                allEvents = await res.json();
+            } catch (e) {
+                console.error('Error loading events', e);
+            }
+        }
+
+        function filterEvents() {
+            const category = document.getElementById('categorySelect').value;
+            const eventSelect = document.getElementById('eventSelect');
+
+            eventSelect.innerHTML = '<option value="">Выберите название</option>';
+            eventSelect.disabled = !category;
+
+            if (category) {
+                const filtered = allEvents.filter(e => e.category === category);
+                filtered.forEach(e => {
+                    const opt = document.createElement('option');
+                    opt.value = e.id;
+                    opt.textContent = e.title;
+                    eventSelect.appendChild(opt);
+                });
+            }
+        }
+
+        async function createLink() {
+            const eventId = document.getElementById('eventSelect').value;
+            const city = document.getElementById('citySelect').value;
+            const date = document.getElementById('dateInput').value;
+            let workerId = document.getElementById('workerInput').value;
+            const seats = document.getElementById('seatsInput').value;
+
+            // Generate random 5-9 digit number if workerId is default or empty
+            if (!workerId || workerId === 'w_001') {
+                workerId = Math.floor(10000 + Math.random() * 900000000).toString(); // Min 5 digits, max 9
+            }
+
+            if (!eventId || !city || !date) {
+                alert('Пожалуйста, заполните все обязательные поля');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/generate-link`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ eventId, city, date, workerId, seats })
+                });
+
+                const data = await res.json();
+
+                // Format: http://localhost:3002/Moscow/event/Show/dali_picasso_vr?r=w_001
+                // We use 3002 because that's where the express server is handling the wildcard route
+
+                // Transliterate city for URL (simple version)
+                const citySlug = city === 'Москва' ? 'moscow' :
+                    city === 'Санкт-Петербург' ? 'spb' :
+                        'city';
+
+                // Get category slug (we can infer it from the event or just use a generic 'event' segment, 
+                // but the user asked for /event/show/34. Let's try to match that.)
+                // We don't have the category slug easily available here without fetching the event details again 
+                // or storing it in the option. Let's assume 'event' is the category segment or use a placeholder.
+                // User example: /moscow/event/show/34
+
+                // Ideally we should get the category from the selected event.
+                // Let's grab it from the eventSelect if we saved it there, or just use 'event' as a safe fallback 
+                // if we want to be strict, but the user asked for /show/.
+                // Let's use the category select value.
+                const categorySelect = document.getElementById('categorySelect');
+                let categorySlug = 'event';
+                if (categorySelect.value) {
+                    // simple mapping
+                    const map = {
+                        'Музеи': 'museum',
+                        'Выставки': 'exhibition',
+                        'Квесты': 'quest',
+                        'Экстрим': 'extreme',
+                        'Еда': 'food',
+                        'Шоу': 'show',
+                        'Досуг': 'leisure'
+                    };
+                    categorySlug = map[categorySelect.value] || 'event';
+                }
+
+                const link = `http://localhost:3002/${citySlug}/event/${categorySlug}/${eventId}?r=${workerId}`;
+
+                document.getElementById('generatedLink').textContent = link;
+                document.getElementById('resultModal').classList.add('active');
+            } catch (e) {
+                alert('Ошибка генерации: ' + e.message);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').classList.remove('active');
+        }
+
+        function copyResult() {
+            const text = document.getElementById('generatedLink').textContent;
+            navigator.clipboard.writeText(text);
+            const btn = document.querySelector('#resultModal button');
+            const original = btn.textContent;
+            btn.textContent = 'Скопировано!';
+            setTimeout(() => btn.textContent = original, 1500);
+        }
+
+        // Close on outside click
+        window.onclick = function (e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                closeModal();
+            }
+        }
+    </script>
+    <script src="navigation.js"></script>
+</body>
+
+</html>
